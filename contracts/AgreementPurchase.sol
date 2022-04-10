@@ -24,6 +24,9 @@ contract AgreementPurchase {
     error onlyBuyerErr();
      /// only the seller can call that fuction
     error onlySellerErr();
+
+    
+
     modifier inState(State _state) {
         if (state != _state) {
             revert  InvalidState();
@@ -44,21 +47,38 @@ contract AgreementPurchase {
         }
         _;
     }
+
+    /// the shipped max time has expired
+
+
+    error shippedMaxTimeErr();
+
+    modifier shippedMaxTimeExp() {
+        if (block.timestamp >= shippedMaxTime) {
+            buyer.transfer(value * 2);
+            seller.transfer(value * 2);
+            state=State.Inactive;
+            errorMsg();
+        }
+
+        _;
+
+    } 
+
+    function errorMsg() private   view inState(State.Shipped)  returns (string memory ) {
+
+            return "Shipped Max time has expired";
+
+    }
     function confirmPurchase() public payable inState(State.Created) {
         require((msg.value == value * 2 ), "Please send 2x the purchase amount");
         buyer=payable(msg.sender);
         state=State.Locked;
     }
-    function shipping() public inState(State.Locked) onlySeller() {
-        require(block.timestamp >= shippedMaxTime ,"shipped time has expired");
-        if (block.timestamp >= shippedMaxTime) {
-            buyer.transfer(value * 2);
-            seller.transfer(value * 2);
-            state=State.Inactive;
-        }
-        else {
-            state=State.Shipped;
-        }
+    function shipping() public inState(State.Locked) onlySeller() shippedMaxTimeExp() {
+        
+        state=State.Shipped;
+        
     }
     function confirmReceived() public inState(State.Shipped) onlyBuyer() {
         if (block.timestamp >= confirmReceiveMaxTime) {
@@ -79,7 +99,7 @@ contract AgreementPurchase {
 
     }
 
-     function unConfirmedReceiveSeller() public inState(State.Shipped) onlyBuyer() {
+     function unConfirmedReceiveSeller() public inState(State.Shipped) onlySeller() {
          seller.transfer(value * 2);
          state=State.Inactive;
 
