@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+//developed by Osama Rizk
 pragma solidity >=0.4.22 <0.9.0;
 
 contract AgreementPurchase {
