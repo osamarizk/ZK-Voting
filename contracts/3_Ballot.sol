@@ -24,6 +24,7 @@ contract Ballot {
     }
 
     address public chairperson;
+    //Add a state variable startTime to record the voting start time
     uint public votingStartTime;
 
     mapping(address => Voter) public voters;
@@ -52,7 +53,7 @@ contract Ballot {
         }
     }
     
-    //a modifier voteEnded that will check if the voting period is over
+    //a modifier voteEnded that will check if the voting period is over.
     modifier voteEnded () {
         if(block.timestamp > votingStartTime + 5 minutes ) {
             revert("voting period is over");
